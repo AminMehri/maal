@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  trade:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/trade
+      - trade_static_volume:/trade/static
+    restart: always
+    ports:
+      - "4000:4000"
+    networks:
+      - trade_network
+      - nginx_network
+    depends_on:
+      - trade_db
+  trade_db:
+    image: postgres:latest
+    container_name: trade_db
+    restart: always
+    environment:
+      - POSTGRES_USER=randomStringForUser12
+      - POSTGRES_PASSWORD=randomStringForPasswod12
+      - POSTGRES_DB=randomStringForDB12
+    ports:
+      - "3200:5432"
+    networks:
+      - trade_network
+    volumes:
+      - trade_db:/var/lib/postgresql/data
+
+volumes:
+  trade_static_volume:
+    external: true
+  trade_db:
+    external: true
+networks:
+  trade_network:
+    external: true
+  nginx_network:
+    external: true
+
