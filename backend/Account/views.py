@@ -195,10 +195,9 @@ class SubmitInstaAccount(APIView):
                 return Response({"message": "شما قبلا اکانت اینستاگرام خود را ثبت کردید و توسط ادمین تایید شده.",
                     "detail": "برای تغییر اکانت خود میتوانید تیکت پشتیبانی ثبت کنید."}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                # edit
+                # edit TODO:
                 pass
 
-        # "detail": f"مقادیر نادرست برای: {' ,'.join(ser.errors)}"}
         ser = SumbitInstaSerializer(data=request.data)
         if not ser.is_valid():
             print(ser.errors)

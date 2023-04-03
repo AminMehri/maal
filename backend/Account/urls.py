@@ -15,6 +15,7 @@ urlpatterns = [
     path('submitVerifyEmail/', views.VerifyEmail.as_view()),
     path('forgetPassword/', views.ForgetPassword.as_view()),
     path('setPassword/', views.SetPassword.as_view()),
+    path('setInstagram/', views.SubmitInstaAccount.as_view()),
     # set instagram account
     # setup freelancer account
     # get freelancer account status (pending - accepted - rejected with reason)
