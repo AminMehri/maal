@@ -50,7 +50,7 @@ class SignUp(APIView):
         try:
             ser = SignUpSerializer(data=request.data)
             if not ser.is_valid():
-                return Response({"message": "مقادیر ایمیل یا پسورد قابل قبول نیست", "detail": f"مقادیر نادرست برای: {' ,'.join(ser.errors)}"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "مقادیر ایمیل یا پسورد قابل قبول نیست", "detail": error_text(ser.errors)}, status=status.HTTP_400_BAD_REQUEST)
             email = request.data.get('email')
             password = request.data.get('password')
 
