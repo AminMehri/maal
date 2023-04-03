@@ -185,6 +185,8 @@ class UserInfo(APIView):
                 }, status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
+            return Response()
+
 
 
 class SubmitInstaAccount(APIView):
