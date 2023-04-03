@@ -25,7 +25,7 @@ def rand_ascii(size):
 def send_email(title, html_content, receiver):
     try:
         # return
-        res = send_mail(title, '', EMAIL_HOST_USER, receiver, fail_silently=False, html_message=html_content)
+        res = send_mail(title, '', EMAIL_HOST_USER, receiver, fail_silently=True, html_message=html_content)
         print(f"send mail to {receiver}: ", title, f"\nstatus: {res}")
     except Exception as e:
         print(f"error in sending email to {receiver} for reason: {str(e)}")
@@ -45,14 +45,13 @@ class SignUp(APIView):
             if not ser.is_valid():
                 return Response({"message": "مقادیر ایمیل یا پسورد قابل قبول نیست", "detail": f"مقادیر نادرست برای: {' ,'.join(ser.errors)}"}, status=status.HTTP_400_BAD_REQUEST)
             email = request.data.get('email')
-            username = request.data.get('username')
             password = request.data.get('password')
 
             if User.objects.filter(email=email).exists():
                 return Response({"message": "این ایمیل قبلا ثبت شده"}, status=status.HTTP_400_BAD_REQUEST)
-            if User.objects.filter(username=username).exists():
+            if User.objects.filter(username=email).exists():
                 return Response({"message": "این نام کاربری قبلا ثبت شده"}, status=status.HTTP_400_BAD_REQUEST)
-            user = User.objects.create_user(username=username, email=email, password=password)
+            user = User.objects.create_user(username=email, email=email, password=password)
 
             token = rand_ascii(100)
             Account(user=user, email_verify_token=token, email_verify_generate_time=timezone.now()).save()
@@ -79,10 +78,10 @@ class CreateEmailToken(APIView):
             account = Account.objects.get(user=user)
             if account.email_verified:
                 return Response({"message": "ایمیل شما قبلا تایید شده"}, status=status.HTTP_400_BAD_REQUEST)
-            if account.email_verify_generate_time and account.email_verify_generate_time + datetime.timedelta(minutes=2) > timezone.now():
-                return Response({"message": "شما هر دو دقیقه یکبار قادر به درخواست ایمیل تایید هستید.",
-                                 "detail": "لطفا کمی صبر کرده و مجددا امتحان نمایید."},
-                                status=status.HTTP_400_BAD_REQUEST)
+            # if account.email_verify_generate_time and account.email_verify_generate_time + datetime.timedelta(minutes=2) > timezone.now():
+            #     return Response({"message": "شما هر دو دقیقه یکبار قادر به درخواست ایمیل تایید هستید.",
+            #                      "detail": "لطفا کمی صبر کرده و مجددا امتحان نمایید."},
+            #                     status=status.HTTP_400_BAD_REQUEST)
             token = rand_ascii(100)
             account.email_verify_token = token
             account.email_verify_generate_time = timezone.now()
@@ -179,7 +178,6 @@ class UserInfo(APIView):
             account = get_object_or_404(Account, user=request.user)
             return Response({"data": {
                     "email_verified": account.email_verified,
-                    "username": account.user.username,
                     "email": account.user.email,
                     }
                 }, status=status.HTTP_200_OK)

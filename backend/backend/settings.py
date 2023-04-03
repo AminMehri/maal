@@ -177,10 +177,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'Account.User'
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-EMAIL_HOST_USER = 'r@gmail.com'
-# EMAIL_HOST_PASSWORD = '123123123'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.elasticemail.com'
+# EMAIL_PORT = 2525
+# EMAIL_HOST_USER = 'info@getarz.com'
+# EMAIL_HOST_PASSWORD = '809E1914F1E8328446B6A35C81C6B7FFEACF'
 # EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = '@gmail.com'
+# DEFAULT_FROM_EMAIL = 'info@getarz.com'
