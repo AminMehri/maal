@@ -12,13 +12,20 @@ from django.core.mail import send_mail
 from django.template.loader import get_template
 from rest_framework.permissions import IsAuthenticated
 from .serializers import SignUpSerializer, SumbitInstaSerializer
-from backend.settings import EMAIL_HOST_USER
+from backend.settings import EMAIL_HOST_USER, base_url
 from rest_framework_simplejwt.tokens import RefreshToken
 import after_response
 
 
 def rand_ascii(size):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=size))
+
+
+def error_text(error_obj):
+    text = "مقادیر نادرست برای:"
+    for field, reason in error_obj.items():
+        text += f"\n{field}: {reason[0]}"
+    return text
 
 
 @after_response.enable
@@ -185,22 +192,113 @@ class UserInfo(APIView):
             print(e)
 
 
-class SubmitInstaAccount(APIView):
+class InstagramAccount(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         account = Account.objects.get(user=request.user)
-        if InstagramAccount.objects.filter(account=account).exists():
-            if InstagramAccount.objects.get(account=account).is_verify == True:
-                return Response({"message": "شما قبلا اکانت اینستاگرام خود را ثبت کردید و توسط ادمین تایید شده.",
-                    "detail": "برای تغییر اکانت خود میتوانید تیکت پشتیبانی ثبت کنید."}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                # edit TODO:
-                pass
+        if len(InstagramAccount.objects.filter(account=account, is_delete=False)) > 3:
+            return Response({"message": "نمیتوانید بیشتر از ۳ اکانت اینستاگرام اضافه کنید."}, 
+                            status=status.HTTP_400_BAD_REQUEST)
 
         ser = SumbitInstaSerializer(data=request.data)
         if not ser.is_valid():
-            print(ser.errors)
-            print(ser.error_messages)
-            return Response({"message": "مقادیر به درستی وارد نشده.", "detail": f"مقادیر نادرست برای:\n {' ,'.join(ser.errors)}"})
+            return Response({"message": "مقادیر به درستی وارد نشده.", "detail": error_text(ser.errors)}, status=status.HTTP_400_BAD_REQUEST)
         
+        InstagramAccount(account=account, instagram_id=request.data.get("instagram_id")).save()
+        return Response({"message": "اکانت اینستاگرام شما ثبت شد."})
+
+
+    def delete(self, request):
+        id = request.query_params.get("id")
+        ins = InstagramAccount.objects.get(account=Account.objects.get(user=request.user), id=id, is_delete=False)
+        ins.is_delete = True
+        ins.delete_at = timezone.now()
+        return Response({"message": "اکانت مورد نظر حذف شد", "timer": True})
+
+
+    def get(self, request):
+        data = [{
+            "instagram_id": insta.instagram_id,
+            "is_verify": insta.is_verify,
+            "instagram_id": insta.instagram_id,
+        } for insta in InstagramAccount.objects.filter(account=Account.objects.get(user=request.user), is_delete=False)]
+
+        return Response(data)
+    
+
+class FreelancerSetup(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        account = Account.objects.get(user=request.user)
+        id = request.query_params.get("id")
+        if Freelancer.objects.filter(account=account).exists():
+            return Response({"message": "شما قبلا درخواست اکانت فریلنسری خودرا ثبت کردید."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        instaAcc = InstagramAccount.objects.get(account=account, is_delete=False, id=id)
+        Freelancer(account=account, instagram_account=instaAcc).save()
+        return Response({"message": "درخواست ساخت اکانت فریلنسری برای شما ثبت شد.", "detail": 
+            "به محض تایید اکانت شما توسط ادمین, پیامک اطلاع رسانی برای شما ارسال شده و میتوانید از خدمات فریلنسری استفاده نمایید."})
+    
+    def get(self, request):
+        account = Account.objects.get(user=request.user)
+        if Freelancer.objects.filter(account=account).exists():
+            ins = Freelancer.objects.get(account=account)
+            data = {
+                "is_accepted": ins.is_accepted,
+                "verified_time": datetime.datetime.strftime(ins.verified_time, "%Y-%m-%d %H:%M"),
+                "created_at": datetime.datetime.strftime(ins.created_at, "%Y-%m-%d %H:%M"),
+                "reject_reason": ins.reject_reason
+            }
+            return Response(data)
+        else:
+            return Response({})
+        
+
+class OverviewAccount(APIView):
+    def get(self, request):
+        insta_id = request.query_params.get("insta_id")
+        if InstagramAccount.objects.filter(instagram_id=insta_id, is_delete=False).exists():
+            instaAcc = InstagramAccount.objects.get(instagram_id=insta_id, is_delete=False)
+            data = {    # TODO: اگه فریلنسر بود بگه چند تا کار تاحالا انجام داده و امتیازاش چجوریه؟
+                "followers": instaAcc.followers,
+                "following": instaAcc.following,
+                "engagement": instaAcc.engagement,
+                "hashtags": instaAcc.hashtags,
+                "uploads": instaAcc.uploads,
+                "post_per_day": instaAcc.post_per_day,
+                "profile": base_url + instaAcc.profile.url,
+                "full_name": instaAcc.full_name,
+                "bio": instaAcc.bio,
+                "category": instaAcc.category,
+                "created_at": instaAcc.created_at,
+            }
+            return Response(data)
+        else:
+            return Response({"message": "اکانت موردنظر یافت نشد!"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+rulesDescription = {
+    "newUser": "اکانت جدید, مجاز به پذیرش روزانه ۵ پروژه هستید. به محض تمام شدن این رول محدودیتی نخواهید داشت.",
+    "Ban": "تا اتمام این رول نمیتوانید پروژه ای قبول کنید!",
+    "bronzeDiscount": "از ۱۰ درصد دستمزد بیشتر در پروژه ها لذت ببرید! همچنین اولویت بالاتری برای قبول پروژه ها دارید",
+    "silverDiscount": "از ۲۰ درصد دستمزد بیشتر در پروژه ها لذت ببرید! همچنین اولویت بالاتری برای قبول پروژه ها دارید",
+    "goldDiscount": "از ۳۰ درصد دستمزد بیشتر در پروژه ها لذت ببرید! همچنین اولویت بالاتری برای قبول پروژه ها دارید",
+}
+
+class OwnRules(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        account = Account.objects.get(user=request.user)
+
+        data = [{
+            "name": rule.rule,
+            "description": rulesDescription.get(rule.rule),
+            "created_at": datetime.datetime.strftime(rule.created_at, "%Y-%m-%d %H:%M"),
+            "expire_at": datetime.datetime.strftime(rule.expire_at, "%Y-%m-%d %H:%M"),
+            
+        } for rule in Rule.objects.filter(account=account, is_expire=False)]
+        
+        return Response(data)

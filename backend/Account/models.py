@@ -37,6 +37,8 @@ class InstagramAccount(models.Model):
     bio = models.CharField(max_length=2500, null=True)
     category = models.CharField(max_length=250, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    is_delete = models.BooleanField(default=False)
+    delete_at = models.DateTimeField(null=True)
 
     def update(self, obj):
         pass
@@ -44,6 +46,7 @@ class InstagramAccount(models.Model):
 
 class Freelancer(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    instagram_account = models.ForeignKey(InstagramAccount, on_delete=models.DO_NOTHING)
     is_accepted = models.BooleanField(default=False)
     verified_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     verified_time = models.DateTimeField(null=True)
@@ -66,3 +69,4 @@ class Rule(models.Model):
     rule = models.CharField(choices=RULES_CHOICES, max_length=50)
     created_at = models.DateTimeField(default=timezone.now)
     expire_at = models.DateTimeField()
+    is_expire = models.BooleanField(default=False)

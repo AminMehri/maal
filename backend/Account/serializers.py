@@ -8,5 +8,5 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class SumbitInstaSerializer(serializers.Serializer):
-    instagram_id = serializers.CharField(max_length=256)
+    instagram_id = serializers.CharField(max_length=10)
 
