@@ -4,11 +4,14 @@ from . import views
 
 
 urlpatterns = [
-    # path('setPassword/', views.SetPassword.as_view()),
-    # get withdraw
-    # post withdraw
-    # get freelancers list
-    # get freelancer
+    path('AcceptWithdraw/', views.AcceptWithdraw.as_view()),
+    path('ShowFreelancers/', views.ShowFreelancers.as_view()),
+    path('ShowFreelancerHistory/', views.ShowFreelancerHistory.as_view()),
+    
+    # get withdraw                       #DONE
+    # post withdraw                      #DONE
+    # get freelancers list               #DONE
+    # get freelancer history             #DONE
     # post freelancer
     # get ticket
     # post ticket

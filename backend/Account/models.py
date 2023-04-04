@@ -20,6 +20,9 @@ class Account(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     balance = models.BigIntegerField(default=0)
 
+    def __str__(self):
+        return self.user.username
+
 
 class InstagramAccount(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -38,6 +41,9 @@ class InstagramAccount(models.Model):
     category = models.CharField(max_length=250, null=True)
     created_at = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return self.account.user.username
+
     def update(self, obj):
         pass
 
@@ -48,7 +54,10 @@ class Freelancer(models.Model):
     verified_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     verified_time = models.DateTimeField(null=True)
     created_at = models.DateTimeField(default=timezone.now)
-    reject_reason = models.CharField(max_length=2500, null=True)
+    reject_reason = models.CharField(max_length=2500, null=True, blank=True)
+
+    def __str__(self):
+        return self.account.user.username
 
 
 
@@ -66,3 +75,6 @@ class Rule(models.Model):
     rule = models.CharField(choices=RULES_CHOICES, max_length=50)
     created_at = models.DateTimeField(default=timezone.now)
     expire_at = models.DateTimeField()
+
+    def __str__(self):
+        return self.account.user.username

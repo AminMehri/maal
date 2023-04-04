@@ -4,7 +4,7 @@ from . import views
 
 
 urlpatterns = [
-    # path('setPassword/', views.SetPassword.as_view()),
+    path('WithdrawRequest/', views.WithdrawRequest.as_view()),
     # get balance
     # deposit money
     # withdraw money (create withdraw request in admins panel)

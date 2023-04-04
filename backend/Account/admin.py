@@ -2,7 +2,21 @@ from django.contrib import admin
 from Account.models import User, Account, InstagramAccount, Freelancer,Rule
 
 admin.site.register(User)
-admin.site.register(Account)
+
+
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ('user', 'balance')
+
+admin.site.register(Account, AccountAdmin)
+
+
+
 admin.site.register(InstagramAccount)
-admin.site.register(Freelancer)
+
+class FreelancerAdmin(admin.ModelAdmin):
+    list_display = ('account', 'is_accepted', 'verified_by', 'reject_reason')
+
+admin.site.register(Freelancer, FreelancerAdmin)
+
+
 admin.site.register(Rule)

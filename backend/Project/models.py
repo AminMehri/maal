@@ -24,10 +24,13 @@ class Project(models.Model):
     description = models.CharField(max_length=5000)
     categories = ArrayField(models.CharField(choices=CATEGORY_CHOICES, max_length=100))
     is_full = models.BooleanField(default=False)
-    files = ArrayField(models.FileField(upload_to="projects/files"))       # تا پابلیش نشده فایلارو نمیده
+    files = ArrayField(models.FileField(upload_to="projects/files"), null=True, blank=True)       # تا پابلیش نشده فایلارو نمیده
     publish = models.BooleanField(default=False)    # نوتیف میده که استوریتو بزار یه ساعت وقت داری, 
     published_at = models.DateTimeField()
     created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
 
 
 class AcceptedProject(models.Model):
