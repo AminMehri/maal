@@ -10,6 +10,8 @@ class Withdraw(models.Model):
     amount = models.BigIntegerField()
     created_at = models.DateTimeField(default=timezone.now)
     paid_at = models.DateTimeField(null=True)
+    is_cancel = models.BooleanField(default=False)
+    cancel_at = models.DateTimeField(null=True)
 
 
 class Deposit(models.Model):

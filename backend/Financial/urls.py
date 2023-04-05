@@ -4,8 +4,9 @@ from . import views
 
 
 urlpatterns = [
-    # path('setPassword/', views.SetPassword.as_view()),
-    # get balance
-    # deposit money
-    # withdraw money (create withdraw request in admins panel)
+    path('withdraw/', views.WithdrawRequest.as_view()),
+    path('getBalance/', views.GetBalance.as_view()),
+    path('deposit/', views.Deposit.as_view()),
+    path('verifyPay/', views.ZarinVerify.as_view()),
+    
 ]
