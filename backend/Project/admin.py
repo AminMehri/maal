@@ -3,7 +3,7 @@ from Project.models import Project, AcceptedProject
 
 
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('title', 'owner', 'admin_confirmed', 'total_price', 'price', 'fee_percent', 'categories', 'is_full', 'publish')
+    list_display = ('title', 'owner', 'admin_confirmed', 'total_price', 'price', 'fee_percent', 'categories', 'is_full', 'is_publish', 'is_delete')
 
 admin.site.register(Project, ProjectAdmin)
 

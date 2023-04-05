@@ -1,5 +1,6 @@
 from django.db import models
 from Account.models import Account, User, Freelancer
+from Admin.models import Admin
 from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.postgres.fields import ArrayField
@@ -16,7 +17,7 @@ class Project(models.Model):
     
     owner = models.ForeignKey(Account, on_delete=models.DO_NOTHING)
     admin_confirmed = models.BooleanField(default=False)
-    confirmed_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    confirmed_by = models.ForeignKey(Admin, on_delete=models.DO_NOTHING, null=True, blank=True)
     title = models.CharField(max_length=250)
     total_price = models.BigIntegerField()
     price = models.BigIntegerField()
@@ -25,9 +26,11 @@ class Project(models.Model):
     categories = ArrayField(models.CharField(choices=CATEGORY_CHOICES, max_length=100))
     is_full = models.BooleanField(default=False)
     files = ArrayField(models.FileField(upload_to="projects/files"), null=True, blank=True)       # تا پابلیش نشده فایلارو نمیده
-    publish = models.BooleanField(default=False)    # نوتیف میده که استوریتو بزار یه ساعت وقت داری, 
-    published_at = models.DateTimeField()
+    is_publish = models.BooleanField(default=False)    # نوتیف میده که استوریتو بزار یه ساعت وقت داری, 
+    published_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.title

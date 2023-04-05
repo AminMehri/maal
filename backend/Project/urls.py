@@ -4,17 +4,23 @@ from . import views
 
 
 urlpatterns = [
-    # path('setPassword/', views.SetPassword.as_view()),
+    path('CreateProject/', views.CreateProject.as_view()),
+    path('ShowProjects/', views.ShowProjects.as_view()),
+    path('ShowProjectsHistory/', views.ShowProjectsHistory.as_view()),
+    path('ShowSingleProject/', views.ShowSingleProject.as_view()),
+    path('DeleteProject/', views.DeleteProject.as_view()),
+    
+    
 
 # global request:
-    # get Projects (پروژه های فعال (پر نشده))
-    # get Project detail 
+    # get Projects (پروژه های فعال (پر نشده))          #DONE
+    # get Project detail                            #DONE
 
 # for client:
-    # get my projects history
-    # get my project detail history     (فرقش با اونی که توی گلوباله, اینه که میتونه پروژه ش مال گذشته باشه)
-    # cancle project (فقط اگه هنوز پابلیش نشده باشه)
-    # post project
+    # get my projects history                       #DONE
+    # get my project detail history     (فرقش با اونی که توی گلوباله, اینه که میتونه پروژه ش مال گذشته باشه)    #DONE
+    # cancle project (فقط اگه هنوز پابلیش نشده باشه)            #DONE
+    # post project                                     #DONE
     # get projects freelancers detail 
 
 # for freelancer:

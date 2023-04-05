@@ -6,6 +6,8 @@ from rest_framework import status
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from Account.models import Freelancer, User, Account
+from Financial.serializers import WithdrawRequestSerializer
+import traceback
 
 
 
@@ -14,16 +16,23 @@ class WithdrawRequest(APIView):
 
     def post(self, request):
         try:
-            username = request.user.username
-            amount = request.data.get("amount")
+            serializer = WithdrawRequestSerializer(data=request.data)
+            if serializer.is_valid():
+                amount = serializer.data.get('amount')
+                
+            else:
+                return Response({'message': 'لطفا مقدار برداشتی مورد نظر را به طور صحیح وارد کنید.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            user = get_object_or_404(User, username=username)
-            account = get_object_or_404(Account, user=user)
-            freelancer = get_object_or_404(Freelancer, account=account)
+            account = Account.objects.get(user=request.user)
+            if not Freelancer.objects.filter(account=account, is_accepted=True).exists():
+                return Response({"message": "اکانت فریلنسری تایید شده ای برای شما یافت نشد!", 
+                                "detail": "اگر درخواست اکانت فریلنسری خود را ثبت کردید باید تا زمان تایید شدن آن صبر کنید."})
+            
+            freelancer = Freelancer.objects.get(account=account, is_accepted=True)
 
-            Withdraw.objects.create(freelancer=freelancer, amount=amount, created_at=timezone.now())
+            Withdraw.objects.create(freelancer=freelancer, amount=amount)
             return Response(status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"data": e}, status=status.HTTP_400_BAD_REQUEST)
-
-
+        
+        except Exception:
+            traceback.print_exc()
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -15,9 +15,9 @@ urlpatterns = [
     path('submitVerifyEmail/', views.VerifyEmail.as_view()),
     path('forgetPassword/', views.ForgetPassword.as_view()),
     path('setPassword/', views.SetPassword.as_view()),
-    # set instagram account
-    # setup freelancer account
-    # get freelancer account status (pending - accepted - rejected with reason)
-    # get insta account overview ( if not verified: not found )
-    # get own account rules
+    
+    path('instagram/', views.InstagramAccount.as_view()),
+    path('freelancer/', views.FreelancerSetup.as_view()),
+    path('overview/', views.OverviewAccount.as_view()),
+    path('ownRules/', views.OwnRules.as_view()),
 ]
