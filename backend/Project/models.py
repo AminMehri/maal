@@ -31,6 +31,7 @@ class Project(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    reject_reason = models.CharField(null=True, blank=True, max_length=2048)
 
     def __str__(self):
         return self.title
@@ -41,7 +42,7 @@ class AcceptedProject(models.Model):
     freelancer = models.ForeignKey(Freelancer, on_delete=models.DO_NOTHING)
     pending = models.BooleanField(default=False)
     request_at = models.DateTimeField(default=timezone.now)
-    accept_at = models.DateTimeField()
+    accept_at = models.DateTimeField(null=True, blank=True)
     price = models.BigIntegerField()
     followers = models.IntegerField()  # این سه مورد برای اینه که داشته باشیم فریلنسر در زمان پذیرش یک کار وضعیت پیجش به چه صورت بوده, چون هی این مقادیر از فیلد اصلی اکانت عوض میشه
     following = models.IntegerField()

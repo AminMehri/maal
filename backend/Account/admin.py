@@ -13,10 +13,10 @@ admin.site.register(Account, AccountAdmin)
 
 admin.site.register(InstagramAccount)
 
-# class FreelancerAdmin(admin.ModelAdmin):
-#     list_display = ('account', 'is_accepted', 'verified_by', 'reject_reason')
+class FreelancerAdmin(admin.ModelAdmin):
+    list_display = ('account', 'is_accepted', 'verified_by', 'reject_reason')
 
-admin.site.register(Freelancer)
+admin.site.register(Freelancer, FreelancerAdmin)
 
 
 admin.site.register(Rule)

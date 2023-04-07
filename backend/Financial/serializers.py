@@ -1,5 +1,5 @@
 from rest_framework import serializers
 
 
-class WithdrawRequestSerializer(serializers.Serializer):
+class newDepositSerializer(serializers.Serializer):
     amount = serializers.IntegerField()

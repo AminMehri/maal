@@ -9,8 +9,16 @@ from Admin.permission import IsSuperUser, IsAdminUser, IsUnknownUser
 from Account.models import Freelancer
 from Project.models import Project, AcceptedProject
 from Account.models import Account
+from Admin.models import Admin
 from Project.serializers import CreateProjectSerializer
 import traceback
+
+
+def error_text(error_obj):
+    text = "مقادیر نادرست برای:"
+    for field, reason in error_obj.items():
+        text += f"\n{field}: {reason[0]}"
+    return text
 
 
 # فیلد فایل چون اری فیلده نمیدونم چجوری بهش بدم فایلارو
@@ -30,7 +38,7 @@ class CreateProject(APIView):
                 files = serializer.data.get('files')
                 
             else:
-                return Response({'message': 'لطفا مقادیر خواسته شده را به طور صحیح وارد کنید.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'لطفا مقادیر خواسته شده را به طور صحیح وارد کنید.', 'detail': error_text(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
             
             owner = Account.objects.get(user=request.user)
             
@@ -74,8 +82,9 @@ class ShowProjectsHistory(APIView):
     def get(self, request):
         try:
             lastShow = int(request.query_params.get("lastShow"))
+            account = Account.objects.get(user=request.user)
 
-            projects = Project.objects.filter(admin_confirmed=True).filter(is_delete=False).order_by('-created_at')[lastShow: lastShow + 9]
+            projects = Project.objects.filter(admin_confirmed=True).filter(owner=account).filter(is_delete=False).order_by('-created_at')[lastShow: lastShow + 9]
 
             data = []
             for project in projects:
@@ -154,5 +163,87 @@ class DeleteProject(APIView):
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class GetProject(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request):
+        try:
+            id = request.data.get("id")
+
+            if Project.objects.filter(id=id).exists():
+                proj = Project.objects.get(id=id)
+                if proj.admin_confirmed == False or proj.is_full == True or proj.is_delete == True or proj.is_publish == False:
+                    return Response({"message": "پروژه مورد نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"message": "پروژه مورد نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND)
+            
+            account = Account.objects.get(user=request.user)
+            
+            # kiram to django. chera get error mide???. ye min pish nemidad. alan mide!!!!
+            try:
+                freelancer = Freelancer.objects.get(account=account) 
+            except:
+                freelancer = None
+
+            if not freelancer:
+                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "برای دسترسی به این بخش لطفا درخواست خود را برای فریلنسر شدن ثبت نمایید."}, status=status.HTTP_404_NOT_FOUND)
+                
+            if freelancer.is_accepted == False:
+                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "درخواست شما برای فریلنسری هنوز تایید نشده است. لطفا بعدا تلاش کنید."}, status=status.HTTP_404_NOT_FOUND)
+            
+            price = 10
+            followers = 10
+            following = 10
+            engagement = 10
+
+            AcceptedProject.objects.create(project_id=id, freelancer=freelancer, pending=True, request_at=timezone.now(), price=price, followers=followers, following=following ,engagement=engagement)
+            return Response(status=status.HTTP_200_OK)
+        except Exception:
+            traceback.print_exc()
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+class ShowAcceptedProjectHistory(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        try:
+            lastShow = int(request.query_params.get("lastShow"))
+            account = Account.objects.get(user=request.user)
+
+            # kiram to django. chera get error mide???. ye min pish nemidad. alan mide!!!!
+            try:
+                freelancer = Freelancer.objects.get(account=account) 
+            except:
+                freelancer = None
+
+            if not freelancer:
+                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "برای دسترسی به این بخش لطفا درخواست خود را برای فریلنسر شدن ثبت نمایید."}, status=status.HTTP_404_NOT_FOUND)
+                    
+            if freelancer.is_accepted == False:
+                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "درخواست شما برای فریلنسری هنوز تایید نشده است. لطفا بعدا تلاش کنید."}, status=status.HTTP_404_NOT_FOUND)
+            
+            projects = AcceptedProject.objects.filter(freelancer=freelancer)[lastShow: lastShow + 9]
+
+            data = []
+            for project in projects:
+                data.append({
+                    "project": project.project.title,
+                    "freelancer": project.freelancer.account.user.username,
+                    "pending": project.pending,
+                    "accept_at": project.accept_at,
+                    "price": project.price,
+                })
+            
+            return Response({"data": data}, status=status.HTTP_200_OK)
+        except Exception:
+            traceback.print_exc()
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 

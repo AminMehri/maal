@@ -93,7 +93,7 @@ class ShowFreelancerHistory(APIView):
 
 
 class AcceptFreelancer(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsSuperUser)
 
     def post(self, request):
         try:
@@ -109,6 +109,27 @@ class AcceptFreelancer(APIView):
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class RejectFreelancer(APIView):
+    permission_classes = (IsAuthenticated, IsSuperUser)
+
+    def post(self, request):
+        try:
+            id = request.data.get("id")
+            reject_reason = request.data.get("reject_reason")
+            user = request.user
+
+            if not Freelancer.objects.filter(id=id).exists():
+                return Response({"message": "کاربر مورد نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND)
+            
+            Freelancer.objects.filter(id=id).update(is_accepted=False, verified_by=user, reject_reason=reject_reason)
+            return Response(status=status.HTTP_200_OK)
+        except Exception:
+            traceback.print_exc()
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
 
 
 
@@ -221,7 +242,7 @@ class ConfirmProject(APIView):
             account = Account.objects.get(user=request.user)
             admin = Admin.objects.get(user=account)
 
-            Project.objects.filter(id=id).update(admin_confirmed=True, confirmed_by=admin)
+            Project.objects.filter(id=id).update(admin_confirmed=True, confirmed_by=admin, reject_reason='')
 
             return Response(status=status.HTTP_200_OK)
 
@@ -232,4 +253,22 @@ class ConfirmProject(APIView):
 
 
 class RejectProject(APIView):
-    pass
+    permission_classes = (IsAuthenticated, IsAdminUser) 
+
+    def post(self, request):
+        try:
+            id = request.data.get("id")
+            reject_reason = request.data.get("reject_reason")
+            
+            if not Project.objects.filter(id=id).filter(is_delete=False).exists():
+                return Response({'message': 'پروژه مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+            account = Account.objects.get(user=request.user)
+            admin = Admin.objects.get(user=account)
+
+            Project.objects.filter(id=id).update(admin_confirmed=False, confirmed_by=admin, reject_reason=reject_reason)
+
+            return Response(status=status.HTTP_200_OK)
+        except Exception:
+            traceback.print_exc()
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
