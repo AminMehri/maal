@@ -22,7 +22,7 @@ class Account(models.Model):
 
     def __str__(self):
         return self.user.username
-
+        
 
 class InstagramAccount(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -43,11 +43,13 @@ class InstagramAccount(models.Model):
     is_delete = models.BooleanField(default=False)
     delete_at = models.DateTimeField(null=True, blank=True)
 
+
     def __str__(self):
         return self.account.user.username
 
     def update(self, obj):
         pass
+
 
 
 class Freelancer(models.Model):
@@ -58,6 +60,9 @@ class Freelancer(models.Model):
     verified_time = models.DateTimeField(null=True)
     created_at = models.DateTimeField(default=timezone.now)
     reject_reason = models.CharField(max_length=2500, null=True, blank=True)
+
+    def __str__(self):
+        return self.account.user.username
 
     def __str__(self):
         return self.account.user.username

@@ -17,6 +17,7 @@ class Withdraw(models.Model):
         return self.freelancer.account.user.username
 
 
+
 class Deposit(models.Model):
     account = models.ForeignKey(Account, on_delete=models.DO_NOTHING)
     authority = models.CharField(max_length=150)

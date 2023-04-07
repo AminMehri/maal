@@ -1,3 +1,4 @@
+
 from django.urls import path
 from . import views
 
@@ -33,6 +34,6 @@ urlpatterns = [
 
     # respond to ticket                  
 
-
     # check AcceptedProject (بر اساس نزدیک ترین تایم های استوری ها به پاک شدن, بزاره که چک)    #نمیفهمم چی میگه
 ]
+

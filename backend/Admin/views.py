@@ -14,6 +14,7 @@ from Project.models import Project
 import traceback
 
 
+
 class AcceptWithdraw(APIView):
     permission_classes = (IsAuthenticated, IsSuperUser)
 
@@ -22,7 +23,7 @@ class AcceptWithdraw(APIView):
             id = request.data.get("id")
             user = request.user
 
-            if Withdraw.objects.filter(id=id).filter(is_paid=True).exists():
+            if Withdraw.objects.filter(id=id, is_paid=True).exists():
                 return Response({"message": "این درخواست قبلا پرداخت شده است."}, status=status.HTTP_208_ALREADY_REPORTED)
 
             Withdraw.objects.filter(id=id).update(is_paid=True, paid_by=user, paid_at=timezone.now())
@@ -33,7 +34,7 @@ class AcceptWithdraw(APIView):
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        
+
 
 class ShowFreelancers(APIView):
     permission_classes = (IsAuthenticated,)
@@ -71,6 +72,7 @@ class ShowFreelancerHistory(APIView):
                 return Response({"message": "کاربر مورد نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND)
 
             freelancer = Freelancer.objects.get(id=id)
+
             projects = AcceptedProject.objects.filter(freelancer=freelancer).order_by("-accept_at")
 
             data = []
@@ -85,7 +87,6 @@ class ShowFreelancerHistory(APIView):
                     "engagement": project.engagement,
                 })
             return Response({"data": data}, status=status.HTTP_200_OK)
-
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)

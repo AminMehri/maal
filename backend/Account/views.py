@@ -28,7 +28,6 @@ def error_text(error_obj):
     return text
 
 
-
 @after_response.enable
 def send_email(title, html_content, receiver):
     try:
@@ -186,7 +185,6 @@ class UserInfo(APIView):
             account = get_object_or_404(Account, user=request.user)
             return Response({"data": {
                     "email_verified": account.email_verified,
-                    "username": account.user.username,
                     "email": account.user.email,
                     }
                 }, status=status.HTTP_200_OK)
@@ -201,15 +199,14 @@ class InstagramAccount(APIView):
 
     def post(self, request):
         account = Account.objects.get(user=request.user)
-        
         if len(InstagramAccount.objects.filter(account=account, is_delete=False)) > 3:
             return Response({"message": "نمیتوانید بیشتر از ۳ اکانت اینستاگرام اضافه کنید."}, 
-                status=status.HTTP_400_BAD_REQUEST)
-        
+                            status=status.HTTP_400_BAD_REQUEST)
+
         ser = SumbitInstaSerializer(data=request.data)
         if not ser.is_valid():
             return Response({"message": "مقادیر به درستی وارد نشده.", "detail": error_text(ser.errors)}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         InstagramAccount(account=account, instagram_id=request.data.get("instagram_id")).save()
         return Response({"message": "اکانت اینستاگرام شما ثبت شد."})
 
@@ -232,6 +229,7 @@ class InstagramAccount(APIView):
         return Response(data)
 
 
+
 class FreelancerSetup(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -246,6 +244,7 @@ class FreelancerSetup(APIView):
         return Response({"message": "درخواست ساخت اکانت فریلنسری برای شما ثبت شد.", "detail": 
             "به محض تایید اکانت شما توسط ادمین, پیامک اطلاع رسانی برای شما ارسال شده و میتوانید از خدمات فریلنسری استفاده نمایید."})
 
+
     def get(self, request):
         account = Account.objects.get(user=request.user)
         if Freelancer.objects.filter(account=account).exists():
@@ -259,6 +258,7 @@ class FreelancerSetup(APIView):
             return Response(data)
         else:
             return Response({})
+
 
 
 class OverviewAccount(APIView):
@@ -284,6 +284,7 @@ class OverviewAccount(APIView):
             return Response({"message": "اکانت موردنظر یافت نشد!"}, status=status.HTTP_404_NOT_FOUND)
 
 
+
 rulesDescription = {
     "newUser": "اکانت جدید, مجاز به پذیرش روزانه ۵ پروژه هستید. به محض تمام شدن این رول محدودیتی نخواهید داشت.",
     "Ban": "تا اتمام این رول نمیتوانید پروژه ای قبول کنید!",
@@ -304,7 +305,7 @@ class OwnRules(APIView):
             "created_at": datetime.datetime.strftime(rule.created_at, "%Y-%m-%d %H:%M"),
             "expire_at": datetime.datetime.strftime(rule.expire_at, "%Y-%m-%d %H:%M"),
 
+            
         } for rule in Rule.objects.filter(account=account, is_expire=False)]
-
-        return Response(data)
         
+        return Response(data)

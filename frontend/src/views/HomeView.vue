@@ -156,9 +156,9 @@ export default {
         })
         .catch(error => {
           fullScreenLoading.value = false
-          if (error.response.data.detail == "No active account found with the given credentials"){
-              usernameEM.value = "نام کاربری یا رمزعبورتو اشتباه زدی. دقت کن!"
-          }
+          // if (error.response.data.detail == "No active account found with the given credentials"){
+          //     usernameEM.value = "نام کاربری یا رمزعبورتو اشتباه زدی. دقت کن!"
+          // }
           usernameE.value = true
           passwordE.value = true
         })

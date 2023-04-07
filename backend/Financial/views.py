@@ -52,12 +52,12 @@ class WithdrawRequest(APIView):
             if not Freelancer.objects.filter(account=account, is_accepted=True).exists():
                 return Response({"message": "اکانت فریلنسری تایید شده ای برای شما یافت نشد!", 
                                 "detail": "اگر درخواست اکانت فریلنسری خود را ثبت کردید باید تا زمان تایید شدن آن صبر کنید."})
-
+            
             freelancer = Freelancer.objects.get(account=account, is_accepted=True)
 
             Withdraw.objects.create(freelancer=freelancer, amount=amount)
             return Response(status=status.HTTP_200_OK)
-
+        
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -94,18 +94,18 @@ class Deposit(APIView):
             "paid_at": datetime.datetime.strftime(dep.paid_at, "%Y-%m-%d %H:%M"),
         } for dep in Deposit.objects.filter(account=account, is_paid=True).order_by("-paid_at")[lastShow: lastShow + 9]]
         return Response(data)
-
+    
 
     def post(self, request):
         account = Account.objects.get(user=request.user)
         if Deposit.objects.filter(account=account, created_at__gte=timezone.now() - datetime.timedelta(minutes=5)).exists():
             return Response({"message": "هر ۵ دقیقه یکبار قادر به ساخت درگاه پرداخت هستید!", "detail": "لطفا کمی صبر کرده و مجددا تلاش نمایید."}, 
                             status=status.HTTP_429_TOO_MANY_REQUESTS)
-
+        
         ser = newDepositSerializer(data=request.data)
         if not ser.is_valid():
             return Response({"message": "مقادیر به درستی وارد نشده.", "detail": error_text(ser.errors)}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         amount = request.data.get("amount")
 
         req_data = {
@@ -169,16 +169,17 @@ class ZarinVerify(APIView):
                 order.account.balance += order.amount
                 order.save()
                 order.account.save()
-
+                    
                 return Response({"message": f"تراکنش با موفقیت انجام شد. کد پیگیری: {refId}"})
-
+            
             elif t_status == 101:
                 return Response({"message": f"تراکنش ارسال شد. پیام: {req.json()['data']['message']}"})
-
+            
             else:
                 return Response({"message": f"تراکنش ناموفق. پیام: {req.json()['data']['message']}"}, status=status.HTTP_400_BAD_REQUEST)
-
+            
         else:
             e_code = req.json()['errors']['code']
             e_message = req.json()['errors']['message']
             return Response({"message": e_message}, status=status.HTTP_400_BAD_REQUEST)
+        
