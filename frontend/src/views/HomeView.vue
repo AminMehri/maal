@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+
     <div v-if="fullScreenLoading" class="fullscreen-loading">Loading&#8230;</div>
 
     <div class="container">

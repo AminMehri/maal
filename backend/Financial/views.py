@@ -183,5 +183,3 @@ class ZarinVerify(APIView):
             e_message = req.json()['errors']['message']
             return Response({"message": e_message}, status=status.HTTP_400_BAD_REQUEST)
         
-
-
