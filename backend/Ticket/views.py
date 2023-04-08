@@ -8,11 +8,17 @@ from Financial.models import Withdraw
 from Admin.permission import IsSuperUser
 from Account.models import Freelancer
 from Project.models import AcceptedProject
-from Ticket.models import Ticket
+from Ticket.models import Ticket, Conversation
 from Account.models import Account
 from Ticket.serializers import CreateTicketSerializer
 import traceback
 
+
+def error_text(error_obj):
+    text = "مقادیر نادرست برای:"
+    for field, reason in error_obj.items():
+        text += f"\n{field}: {reason[0]}"
+    return text
 
 
 class CreateTicket(APIView):
@@ -21,16 +27,15 @@ class CreateTicket(APIView):
     def post(self, request):
         try:
             serializer = CreateTicketSerializer(data=request.data)
-            if serializer.is_valid():
-                subject = serializer.data.get('subject')
-                description = serializer.data.get('description')
-                
-            else:
-                return Response({'message': 'لطفا مقادیر موضوع و توضیحات را به درستی وارد کنید.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not serializer.is_valid():
+                return Response({"message": "مقادیر به درستی وارد نشده", "detail": error_text(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+            subject = serializer.data.get('subject')
+            text = serializer.data.get('text')
             account = Account.objects.get(user=request.user)
-            
-            Ticket.objects.create(user=account, subject=subject, description=description, created_at=timezone.now())
+            conversation = Conversation.objects.create(account=account, subject=subject, status="Pending" , last_update=timezone.now())
+            Ticket.objects.create(conversation=conversation, text=text)
 
             return Response(status=status.HTTP_201_CREATED)
         except Exception:

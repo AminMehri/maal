@@ -4,14 +4,39 @@ from django.utils import timezone
 from Admin.models import Admin
 
 
+class Conversation(models.Model):
+
+    STATUS_CHOICES = (
+        ('Answered', 'Answered'),
+        ('Pending', 'Pending'),
+        ('Closed', 'Closed')
+    )
+
+    account = models.ForeignKey(Account, on_delete=models.DO_NOTHING)
+    subject = models.CharField(max_length=256)
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES)
+    created_at = models.DateTimeField(default=timezone.now)
+    last_update = models.DateTimeField()    # Sort by last_update in Tickets List
+    
+
 
 class Ticket(models.Model):
-    user = models.ForeignKey(Account, on_delete=models.DO_NOTHING)
-    subject = models.CharField(max_length=256)
-    description = models.CharField(max_length=1028)
-    is_awnsered = models.BooleanField(default=False)
-    responsive_admin = models.ForeignKey(Admin, on_delete=models.DO_NOTHING, null=True, blank=True)
+    conversation = models.ForeignKey(Conversation, on_delete=models.DO_NOTHING)
+    text = models.CharField(max_length=2048)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return self.subject
+        return self.conversation.subject
+    
+
+
+class AdminAnswer(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.DO_NOTHING)
+    admin = models.ForeignKey(Admin, on_delete=models.DO_NOTHING)
+    text = models.CharField(max_length=4096)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.conversation.subject
+    
+
