@@ -24,7 +24,6 @@ class Account(models.Model):
         return self.user.username
 
 
-
 class InstagramAccount(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     instagram_id = models.CharField(max_length=256)
@@ -42,7 +41,7 @@ class InstagramAccount(models.Model):
     category = models.CharField(max_length=250, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     is_delete = models.BooleanField(default=False)
-    delete_at = models.DateTimeField(null=True)
+    delete_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.account.user.username
@@ -51,15 +50,14 @@ class InstagramAccount(models.Model):
         pass
 
 
-
 class Freelancer(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     instagram_account = models.ForeignKey(InstagramAccount, on_delete=models.DO_NOTHING)
     is_accepted = models.BooleanField(default=False)
-    verified_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    verified_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
     verified_time = models.DateTimeField(null=True)
     created_at = models.DateTimeField(default=timezone.now)
-    reject_reason = models.CharField(max_length=2500, null=True)
+    reject_reason = models.CharField(max_length=2500, null=True, blank=True)
 
     def __str__(self):
         return self.account.user.username
@@ -82,7 +80,5 @@ class Rule(models.Model):
     expire_at = models.DateTimeField()
     is_expire = models.BooleanField(default=False)
 
-
     def __str__(self):
         return self.account.user.username
-

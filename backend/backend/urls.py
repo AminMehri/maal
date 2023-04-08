@@ -25,5 +25,6 @@ urlpatterns = [
     path('project/', include("Project.urls")),
     path('admin/', include("Admin.urls")),
     path('financial/', include("Financial.urls")),
+    path('ticket/', include("Ticket.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

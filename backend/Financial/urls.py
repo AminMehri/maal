@@ -8,5 +8,4 @@ urlpatterns = [
     path('getBalance/', views.GetBalance.as_view()),
     path('deposit/', views.Deposit.as_view()),
     path('verifyPay/', views.ZarinVerify.as_view()),
-    
 ]

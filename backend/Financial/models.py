@@ -6,12 +6,15 @@ from django.utils import timezone
 class Withdraw(models.Model):
     freelancer = models.ForeignKey(Freelancer, on_delete=models.DO_NOTHING)
     is_paid = models.BooleanField(default=False)
-    paid_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    paid_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     amount = models.BigIntegerField()
     created_at = models.DateTimeField(default=timezone.now)
     paid_at = models.DateTimeField(null=True)
     is_cancel = models.BooleanField(default=False)
     cancel_at = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.freelancer.account.user.username
 
 
 class Deposit(models.Model):
@@ -22,3 +25,6 @@ class Deposit(models.Model):
     amount = models.BigIntegerField()
     created_at = models.DateTimeField(default=timezone.now)
     paid_at = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.account.user.username
