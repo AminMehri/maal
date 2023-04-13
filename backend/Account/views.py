@@ -196,7 +196,7 @@ class UserInfo(APIView):
 
 
 
-class InstagramAccount(APIView):
+class InstagramAccountView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):

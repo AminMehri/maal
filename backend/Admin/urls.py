@@ -9,30 +9,25 @@ urlpatterns = [
     path('ShowFreelancerHistory/', views.ShowFreelancerHistory.as_view()),
     path('AcceptFreelancer/', views.AcceptFreelancer.as_view()),
     path('RejectFreelancer/', views.RejectFreelancer.as_view()),
-    path('ShowTickets/', views.ShowTickets.as_view()),
     path('ShowProjects/', views.ShowProjects.as_view()),
     path('ShowSingleProject/', views.ShowSingleProject.as_view()),
     path('ConfirmProject/', views.ConfirmProject.as_view()),
     path('RejectProject/', views.RejectProject.as_view()),
+    path('ShowFreelancersPublishProject/', views.ShowFreelancersPublishProject.as_view()),
+    path('CheckStoryOnStart/', views.CheckStoryOnStart.as_view()),
+    path('CheckStoryAtEnd/', views.CheckStoryAtEnd.as_view()),
+    path('AdminAwnserTicketView/', views.AdminAwnserTicketView.as_view()),
+    path('ShowConversationsView/', views.ShowConversationsView.as_view()),
+    path('ShowSingleConversationView/', views.ShowSingleConversationView.as_view()),
+    path('CloseConversationView/', views.CloseConversationView.as_view()),
+    path('ShowConversationsAdminHistory/', views.ShowConversationsAdminHistory.as_view()),
     
-    
-    
-    
-    
-    # get withdraw                                         #DONE
-    # post withdraw                                        #DONE
-    # get freelancers list                                 #DONE
-    # get freelancer history                               #DONE
-    # post freelancer                                      #DONE
-    # get tickets                                          #DONE
-    # get Projects list (first admin_confirmed=False)      #DONE
-    # get project detail                                   #DONE
-    # post project confirm if admin_confirmed=False        #DONE
-    # don't confirm project by admin for a reason          #DONE
-    # reject freelancer                                    #DONE
 
-    # respond to ticket                  
-
-
-    # check AcceptedProject (بر اساس نزدیک ترین تایم های استوری ها به پاک شدن, بزاره که چک)    #نمیفهمم چی میگه
+    # '''
+    #     هر دوتای اینا باید توی ویو گت پروژه انجام شه
+        
+    #     اعلام کنیم ک یه پروژه پابلیش شده و به کسایی ک اونو قبول کردن اس ام اس بدیم
+    #     یه پروژه کی فول میشه و وقتی شد پابلیش رو ترو کنیم
+    
+    # '''
 ]

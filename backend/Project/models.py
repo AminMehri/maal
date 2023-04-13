@@ -48,7 +48,25 @@ class AcceptedProject(models.Model):
     following = models.IntegerField()
     engagement = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)])
 
+    # cancel by freelancer
+    is_cancel = models.BooleanField(default=False)
+    is_cancel_at = models.DateTimeField(null=True, blank=True)
+
+    # delete
+    is_delete_project = models.BooleanField(default=False)
+    is_delete_project_at = models.DateTimeField(null=True, blank=True)
     
+    # فریلنسر میگه استوری گذاشتم
+    submited_story = models.BooleanField(default=False) 
+    submited_story_time = models.DateTimeField(null=True, blank=True)
+    
+    # story check by at first
+    story_checked_on_start = models.BooleanField(default=False)
+    stroy_checked_on_start_time = models.DateTimeField(null=True, blank=True)
+    story_checked_at_end = models.BooleanField(default=False)
+    stroy_checked_at_end_time = models.DateTimeField(null=True, blank=True)
+    story_checked_by = models.ForeignKey(Admin, on_delete=models.DO_NOTHING, null=True, blank=True)
+
     def check_end_time(self, obj):
         pass
 

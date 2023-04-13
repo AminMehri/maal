@@ -9,7 +9,7 @@ admin.site.register(Project, ProjectAdmin)
 
 
 class AcceptedProjectAdmin(admin.ModelAdmin):
-    list_display = ('project', 'freelancer', 'pending', 'price', 'followers', 'following', 'engagement')
+    list_display = ('project', 'freelancer', 'pending', 'price', 'followers', 'following', 'engagement', 'is_cancel')
 
 admin.site.register(AcceptedProject, AcceptedProjectAdmin)
 

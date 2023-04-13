@@ -5,7 +5,7 @@ from rest_framework import status
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from Financial.models import Withdraw
-from Admin.permission import IsSuperUser, IsAdminUser, IsUnknownUser
+from Admin.permission import IsSuperUser, IsAdminUser, IsUnknownUser, IsFreelancer
 from Account.models import Freelancer
 from Project.models import Project, AcceptedProject
 from Account.models import Account
@@ -21,7 +21,8 @@ def error_text(error_obj):
     return text
 
 
-# فیلد فایل چون اری فیلده نمیدونم چجوری بهش بدم فایلارو
+
+# TODO: محاسبه پرایس و فی پرسنت
 class CreateProject(APIView):
     permission_classes = (IsAuthenticated, )
 
@@ -31,16 +32,17 @@ class CreateProject(APIView):
             if serializer.is_valid():
                 title = serializer.data.get('title')
                 total_price = serializer.data.get('total_price')
-                price = serializer.data.get('price')
-                fee_percent = serializer.data.get('fee_percent')
                 description = serializer.data.get('description')
                 categories = serializer.data.get('categories')
-                files = serializer.data.get('files')
+                files = [x for x in request.FILES]
                 
             else:
                 return Response({'message': 'لطفا مقادیر خواسته شده را به طور صحیح وارد کنید.', 'detail': error_text(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
             
             owner = Account.objects.get(user=request.user)
+
+            price = 10
+            fee_percent = 10
             
             Project.objects.create(title=title, total_price=total_price, price=price, fee_percent=fee_percent, description=description, categories=categories, files=files, owner=owner, admin_confirmed=False, is_full=False, is_publish=False, is_delete=False, created_at=timezone.now())
             return Response()
@@ -64,12 +66,11 @@ class ShowProjects(APIView):
                 data.append({
                     'owner': project.owner.user.username,
                     'title': project.title,
-                    'total_price': project.total_price,
                     'price': project.price,
-                    'fee_percent': project.fee_percent,
                     'categories': project.categories,
+                    'id': project.id,
                 })
-            return Response({"data": data}, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -91,12 +92,11 @@ class ShowProjectsHistory(APIView):
                 data.append({
                     'owner': project.owner.user.username,
                     'title': project.title,
-                    'total_price': project.total_price,
                     'price': project.price,
-                    'fee_percent': project.fee_percent,
                     'categories': project.categories,
+                    'id': project.id,
                 })
-            return Response({"data": data}, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -119,9 +119,7 @@ class ShowSingleProject(APIView):
             data = [{
                 'owner': project.owner.user.username,
                 'title': project.title,
-                'total_price': project.total_price,
                 'price': project.price,
-                'fee_percent': project.fee_percent,
                 'categories': project.categories,
                 'is_full': project.is_full,
                 'is_publish': project.is_publish,
@@ -129,8 +127,9 @@ class ShowSingleProject(APIView):
                 'files': project.files,
                 'published_at': project.published_at,
                 'created_at': project.created_at,
+                'id': project.id
             }]
-            return Response({"data": data}, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -138,25 +137,26 @@ class ShowSingleProject(APIView):
 
 
 class DeleteProject(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsFreelancer)
 
     def post(self, request):
         try:
             id = request.data.get("id")
-            account = Account.objects.get(user=request.user)
 
             if not Project.objects.filter(id=id).exists():
                 return Response({'message': 'پروژه مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
             
-            if not Project.objects.filter(id=id).filter(owner=account).exists():
+            if not Project.objects.filter(id=id, owner__user=request.user).exists():
                 return Response({'message': 'شما قادر به حذف پروژه مورد نظر نیستید.'}, status=status.HTTP_403_FORBIDDEN)
 
-            if Project.objects.filter(id=id).filter(owner=account).filter(is_delete=True).exists():
+            if Project.objects.filter(id=id, owner__user=request.user, is_delete=True).exists():
                 return Response({'message': 'پروژه مورد نظر قبلا حذف شده است.'}, status=status.HTTP_208_ALREADY_REPORTED)
             
-            if Project.objects.filter(id=id).filter(owner=account).filter(is_publish=True).exists():
+            if Project.objects.filter(id=id, owner__user=request.user, is_publish=True).exists():
                 return Response({'message': 'شما نمیتوانید پروژه منتشر شده را حذف نمایید.'}, status=status.HTTP_451_UNAVAILABLE_FOR_LEGAL_REASONS)
 
+            if AcceptedProject.objects.filter(project__id=id).exists():
+                AcceptedProject.objects.filter(project__id=id).update(is_delete_project=True, is_delete_project_at=timezone.now(), pending=False)
 
             Project.objects.filter(id=id).update(is_delete=True, deleted_at=timezone.now())
             return Response(status=status.HTTP_200_OK)
@@ -166,8 +166,9 @@ class DeleteProject(APIView):
 
 
 
+# TODO: محاسبه فالوور فالوینگ اینگیجمنت و پرایس
 class GetProject(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsFreelancer)
 
     def post(self, request):
         try:
@@ -175,24 +176,15 @@ class GetProject(APIView):
 
             if Project.objects.filter(id=id).exists():
                 proj = Project.objects.get(id=id)
-                if proj.admin_confirmed == False or proj.is_full == True or proj.is_delete == True or proj.is_publish == False:
+                if proj.admin_confirmed == False or proj.is_full == False or proj.is_delete == True or proj.is_publish == False:
                     return Response({"message": "پروژه مورد نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND)
             else:
                 return Response({"message": "پروژه مورد نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND)
             
-            account = Account.objects.get(user=request.user)
+            freelancer = Freelancer.objects.get(account__user=request.user) 
             
-            # kiram to django. chera get error mide???. ye min pish nemidad. alan mide!!!!
-            try:
-                freelancer = Freelancer.objects.get(account=account) 
-            except:
-                freelancer = None
-
-            if not freelancer:
-                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "برای دسترسی به این بخش لطفا درخواست خود را برای فریلنسر شدن ثبت نمایید."}, status=status.HTTP_404_NOT_FOUND)
-                
-            if freelancer.is_accepted == False:
-                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "درخواست شما برای فریلنسری هنوز تایید نشده است. لطفا بعدا تلاش کنید."}, status=status.HTTP_404_NOT_FOUND)
+            if AcceptedProject.objects.filter(project__id=id, freelancer=freelancer).exists():
+                return Response({"message": "شما قبلا این پروژه را قبول کرده اید."}, status=status.HTTP_208_ALREADY_REPORTED)
             
             price = 10
             followers = 10
@@ -207,43 +199,82 @@ class GetProject(APIView):
 
 
 
+# TODO: یه فریلنسر تا کی میتونه از قبول پروژه انصراف بده
+class CancelAcceptedProject(APIView):
+    permission_classes = (IsAuthenticated, IsFreelancer)
 
-class ShowAcceptedProjectHistory(APIView):
-    permission_classes = (IsAuthenticated, )
-
-    def get(self, request):
+    def post(self, request):
         try:
-            lastShow = int(request.query_params.get("lastShow"))
-            account = Account.objects.get(user=request.user)
+            id = request.data.get("id")
 
-            # kiram to django. chera get error mide???. ye min pish nemidad. alan mide!!!!
-            try:
-                freelancer = Freelancer.objects.get(account=account) 
-            except:
-                freelancer = None
-
-            if not freelancer:
-                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "برای دسترسی به این بخش لطفا درخواست خود را برای فریلنسر شدن ثبت نمایید."}, status=status.HTTP_404_NOT_FOUND)
-                    
-            if freelancer.is_accepted == False:
-                return Response({"message": "تنها فریلنسر ها قادر به قبول پروژه هستند.", "detail": "درخواست شما برای فریلنسری هنوز تایید نشده است. لطفا بعدا تلاش کنید."}, status=status.HTTP_404_NOT_FOUND)
+            if not AcceptedProject.objects.filter(project__id=id, freelancer__account__user=request.user, is_delete_project=False).exists():
+                return Response({"message": "شما این پروژه را قبول نکرده اید."}, status=status.HTTP_404_NOT_FOUND)
             
-            projects = AcceptedProject.objects.filter(freelancer=freelancer)[lastShow: lastShow + 9]
-
-            data = []
-            for project in projects:
-                data.append({
-                    "project": project.project.title,
-                    "freelancer": project.freelancer.account.user.username,
-                    "pending": project.pending,
-                    "accept_at": project.accept_at,
-                    "price": project.price,
-                })
+            if AcceptedProject.objects.filter(project__id=id, freelancer__account__user=request.user, is_cancel=True).exists():
+                return Response({"message": "شما قبلا از قبول این پروژه انصراف داده اید."}, status=status.HTTP_208_ALREADY_REPORTED)
             
-            return Response({"data": data}, status=status.HTTP_200_OK)
+            AcceptedProject.objects.filter(project__id=id, freelancer__account__user=request.user).update(is_cancel=True, is_cancel_at=timezone.now(), pending=False)
+            return Response(status=status.HTTP_200_OK)
         except Exception:
             traceback.print_exc()
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
+class ShowAcceptedProjectHistory(APIView):
+    permission_classes = (IsAuthenticated, IsFreelancer)
+
+    def get(self, request):
+        try:
+            lastShow = int(request.query_params.get("lastShow"))
+
+            freelancer = Freelancer.objects.get(account__user=request.user)             
+            projects = AcceptedProject.objects.filter(freelancer=freelancer)[lastShow: lastShow + 9]
+
+            data = []
+            for project in projects:
+                data.append({
+                    'project': project.project.title,
+                    'freelancer': project.freelancer.account.user.username,
+                    'pending': project.pending,
+                    'accept_at': project.accept_at,
+                    'price': project.price,
+                    'is_cancel': project.is_cancel,
+                    'is_delete_project': project.is_delete_project,
+                    'id': project.id,
+                })
+            
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception:
+            traceback.print_exc()
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class SubmitStory(APIView):
+    permission_classes = (IsAuthenticated, IsFreelancer)
+
+    def post(self, request):
+        try:
+            id = request.data.get("id")    #id project
+
+            if not Project.objects.filter(id=id, admin_confirmed=True, is_full=True, is_delete=False).exists():
+                return Response({"message": "پروژه موردنظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND)
+            
+            if Project.objects.filter(id=id, is_publish=False).exists():
+                return Response({"message": "پروژه مورد نظر هنوز پابلیش نشده است.", "detail": "لطفا تا پرشدن ظرفیت پروژه منتظر بمانید."}, status=status.HTTP_423_LOCKED)
+
+            if not AcceptedProject.objects.filter(project__id=id, freelancer__account__user=request.user).exists():
+                return Response({"message": "شما پروژه موردنظر را قبول نکرده اید و نمیتوانید این درخواست را ثبت کنید"}, status=status.HTTP_403_FORBIDDEN)
+            
+            if AcceptedProject.objects.filter(project__id=id, freelancer__account__user=request.user, submited_story=True).exists():
+                return Response({"message": "شما قبلا تایید استوری خودرا انجام داده اید."}, status=status.HTTP_208_ALREADY_REPORTED)
+            
+            if AcceptedProject.objects.filter(project__id=id, freelancer__account__user=request.user, is_cancel=True).exists():
+                return Response({"message": "شما از قبول این پروژه انصراف داده اید."}, status=status.HTTP_404_NOT_FOUND)
+            
+            AcceptedProject.objects.filter(project__id=id, freelancer__account__user=request.user).update(submited_story=True, submited_story_time=timezone.now())
+            return Response(status=status.HTTP_200_OK)
+        except Exception:
+            traceback.print_exc()
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)

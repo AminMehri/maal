@@ -16,7 +16,7 @@ urlpatterns = [
     path('forgetPassword/', views.ForgetPassword.as_view()),
     path('setPassword/', views.SetPassword.as_view()),
     
-    path('instagram/', views.InstagramAccount.as_view()),
+    path('instagram/', views.InstagramAccountView.as_view()),
     path('freelancer/', views.FreelancerSetup.as_view()),
     path('overview/', views.OverviewAccount.as_view()),
     path('ownRules/', views.OwnRules.as_view()),

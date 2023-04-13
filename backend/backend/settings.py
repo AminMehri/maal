@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'Admin',
     'Financial',
     'Ticket',
+    'Utils',
     'rest_framework',
     'rest_framework_simplejwt',
     'after_response',
