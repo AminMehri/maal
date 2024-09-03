@@ -26,25 +26,25 @@ const routes = [
     path: '/register',
     name: 'register',
     component: RegisterView,
-    meta: { loginRedirect: true }
+    // meta: { loginRedirect: true }
   },
   {
     path: '/dashboard/overview',
     name: 'dashboard',
     component: DashboardView,
-    meta: { loginRequired: true }
+    // meta: { loginRequired: true }
   },
   {
     path: '/dashboard/:username',
     name: 'user_dashboard',
     component: UserDashboardView,
-    meta: { loginRequired: true }
+    // meta: { loginRequired: true }
   },
   {
     path: '/profile',
     name: 'profile',
     component: ProfileView,
-    meta: { loginRequired: true }
+    // meta: { loginRequired: true }
   },
   {
     path: '/confirmEmail/:token/:id',
